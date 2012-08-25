@@ -4,8 +4,8 @@ require File.expand_path('../lib/sms_api/version', __FILE__)
 Gem::Specification.new do |gem|
   gem.authors       = ["Piotr Gębala"]
   gem.email         = ["piotrek.gebala@gmial.com"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
+  gem.description   = %q{Library for sending sms via smsapi.pl}
+  gem.summary       = %q{v0.1 supports only sending sms}
   gem.homepage      = ""
 
   gem.files         = `git ls-files`.split($\)

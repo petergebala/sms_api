@@ -1,38 +1,18 @@
-# SmsApi
+require 'net/http'
+require 'uri'
 
-Simple gem responsible for connecting to smsapi.pl and sending simple smses.
-Version 0.1 supports only sending sms.
+module SmsApi
+  class Connection
+    # Available options to pass in constructor
+    # This options you can use to send in params
+    AVAILABLE_OPTIONS = [:password, :username, :from, :to, :group, :message, :from, :encoding, :flash, :test, 
+                         :details, :date, :datacodin, :idx, :check_idx, :single, :eco, :nounicode, :fast]
+ 
+    # Required field for sending sms
+    REQUIRED_FIELDS = [:from, :password, :username, :to, :message] 
 
-## Installation
+    attr_accessor *AVAILABLE_OPTIONS, :passed_options
 
-Add this line to your application's Gemfile:
-
-    gem 'sms_api'
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install sms_api
-
-Add configuration file to initializers:
-
-    SmsApi.setup do |config|
-      config.username   = "login to smsapi.pl page"
-      config.password   = "password to smsapi.pl page"
-      config.test_mode  = Rails.env.production? ? false : true
-    end
-
-## Usage
-
-    sms = SmsApi::Connection.new(:to => "555-555-555", :message => "Lorem Ipsum", :from => "Alert")
-    sms.deliver! # Then raise an error if failure
-    # or
-    sms.deliver # Return false on failure
-
-## Possible options
     #=================================================================================================
     # Parametr      | Opis
     #=================================================================================================
@@ -103,13 +83,133 @@ Add configuration file to initializers:
     #               | podczas wysyłania wiadomości Pro oraz Eco, Ilość punktów za wysyłkę pomnożona
     #               | będzie przez 1.5
     #=================================================================================================
+    # Uwaga! Parametry group oraz to są zamienne, w odwołaniu musi się pojawić jeden z tych dwóch
+    # parametrów. Brak jednego z tych dwóch parametrów lub wystąpienie ich obu spowoduje niewysłanie
+    # wiadomości oraz zwrócenie błędu ERROR: 13.
+    #=================================================================================================
+    # Default constructor. Received arguments should be as a hash.
+    def initialize(*args)
+      options = args.extract_options!.symbolize_keys!
+      options.merge!(username: (options[:username] || SmsApi.username), 
+                     password: (options[:password] || SmsApi.password),
+                     test: SmsApi.test_mode)
 
-For more please read [SmsApi.pl](http://smsapi.pl) documentation at [link](http://www.smsapi.pl/sms-api/interfejs-https)
+      options.each_pair do |opt_key, opt_val|
+        if AVAILABLE_OPTIONS.include?(opt_key)
+          self.send("#{opt_key}=", opt_val)
+        else
+          raise ArgumentError, "There is no option: #{opt_key}. Please check documentation."
+        end
+      end
 
-## Contributing
+      # Encode password and save in instance variable
+      self.password = Digest::MD5.hexdigest(options[:password])
 
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Added some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+      # We are saving information about which options were passed
+      self.passed_options = options.keys
+
+      self
+    end
+
+    #=================================================================================================
+    # Request: http://api.smsapi.pl/sms.do?username=uzytkownik&password=hasloMD5&from=nazwa&to=48500500500&message=test wiadomosci
+    # Respons: OK:<ID>:<POINTS> or if error ERROR:<ERR><ID><POINTS>
+    #=================================================================================================
+    # Sends a sms and raise an error if something goes wrong
+    def deliver!
+      # Check if sms have all require fields
+      validate_sms
+
+      # Check if phone number is correct
+      validate_phone_number
+
+      # Sending sms to smsapi.pl
+      response = Net::HTTP.post_form(URI.parse(SmsApi.api_url), generate_params).body
+
+      # Checking response. If is an error then we are raising exception
+      # other wise we return array [:ID, :POINTS]
+      # where ID is an sms ID and POINTS is cost of an sms
+      if response.match(/^ERROR:(\d+)$/)
+        raise DeliverError, $1
+      elsif response.match(/^OK:(.+):(.+)$/)
+        [$1, $2]
+      else
+        raise DeliverError, "Unknow response"
+      end
+    end
+
+    # Sends a sms and return false if something goes wrong
+    def deliver
+      begin
+        deliver!
+        true
+      rescue DeliverError, InvalidPhoneNumberNumeraticly, InvalidPhoneNumberLength, 
+             InvalidPhoneNumber, InvalidSmsPropertis => e
+        false
+      end
+    end
+
+    private
+    # Validate presence of required fields
+    def validate_sms
+      REQUIRED_FIELDS.each do |field|
+        if field == nil || field == ""
+          raise InvalidSmsPropertis, "Option #{field} is unset. This field is required"
+        end
+      end
+      true
+    end
+
+    # Valides phone number in poland
+    # Correct phone numbers are: 
+    # (+48) 790 111 146
+    # (48) 790 111 146
+    # (+48)-790-111-146
+    # (48)-790-111-146
+    # +48 790 111 146
+    # +48 790-111-146
+    # 48 790 111 146
+    # 48 790-111-146
+    # 790 111 146
+    # 790-111-146
+    # +48790111146
+    def validate_phone_number
+      avaliable_length  = [9, 11]
+      phone_number      = self.to.gsub(/\s|\-|\+|\.|\(|\)/, '')
+
+      if not avaliable_length.include?(phone_number.size)
+        raise InvalidPhoneNumberLength, "Please check phone number: #{@to}" 
+      elsif phone_number.length == 11 && !phone_number.match(/^48/)
+        raise InvalidPhoneNumber, "Wrong phone format: #{@to}"
+      elsif phone_number.match(/[A-Za-z]/)
+        raise InvalidPhoneNumberNumeraticly, "Phone number contains letters: #{@to}" 
+      end
+      
+      true
+    end
+
+    # Return hash of options which was set.
+    def generate_params
+      result = {}
+
+      passed_options.each do |opt|
+        result[opt] = self.send(opt)
+      end
+
+      # Setting up test option
+      self.test ? result[:test] = 1 : result.delete(:test)
+
+      result
+    end
+  end
+end
+
+class InvalidPhoneNumberNumeraticly < StandardError; end;
+class InvalidPhoneNumberLength < StandardError; end;
+class InvalidPhoneNumber < StandardError; end;
+class InvalidSmsPropertis < StandardError; end;
+class DeliverError < StandardError
+  def initialize(status)
+    super(SmsApi::Mappings::ERRORS.keys.include?(status.to_i) ? SmsApi::Mappings::ERRORS[status.to_i] : status)
+  end
+end
