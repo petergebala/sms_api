@@ -134,7 +134,7 @@ module SmsApi
       elsif response.match(/^OK:(.+):(.+)$/)
         [$1, $2]
       else
-        raise DeliverError, "Unknow response"
+        raise DeliverError, "Unknow response."
       end
     end
 
@@ -153,8 +153,8 @@ module SmsApi
     # Validate presence of required fields
     def validate_sms
       REQUIRED_FIELDS.each do |field|
-        if field == nil || field == ""
-          raise InvalidSmsPropertis, "Option #{field} is unset. This field is required"
+        if self.send(field) == nil || self.send(field) == ""
+          raise InvalidSmsPropertis, "Option #{field} is unset. This field is required."
         end
       end
       true
@@ -174,15 +174,15 @@ module SmsApi
     # 790-111-146
     # +48790111146
     def validate_phone_number
-      avaliable_length  = [9, 11]
+      avaliable_length  = [9, 11] # Without or with country prefix
       phone_number      = self.to.gsub(/\s|\-|\+|\.|\(|\)/, '')
 
       if not avaliable_length.include?(phone_number.size)
-        raise InvalidPhoneNumberLength, "Please check phone number: #{@to}" 
+        raise InvalidPhoneNumberLength, "Please check phone number: #{@to}." 
       elsif phone_number.length == 11 && !phone_number.match(/^48/)
-        raise InvalidPhoneNumber, "Wrong phone format: #{@to}"
+        raise InvalidPhoneNumber, "Wrong phone format: #{@to}."
       elsif phone_number.match(/[A-Za-z]/)
-        raise InvalidPhoneNumberNumeraticly, "Phone number contains letters: #{@to}" 
+        raise InvalidPhoneNumberNumeraticly, "Phone number contains letters: #{@to}." 
       end
       
       true

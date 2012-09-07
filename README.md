@@ -7,7 +7,7 @@ Version 0.1 supports only sending sms.
 
 Add this line to your application's Gemfile:
 
-    gem 'sms_api'
+    gem 'sms_api', :git => 'git://github.com/petergebala/sms_api.git'
 
 And then execute:
 
