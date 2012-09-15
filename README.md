@@ -7,7 +7,9 @@ Version 0.1 supports only sending sms.
 
 Add this line to your application's Gemfile:
 
+    ```ruby
     gem 'sms_api', :git => 'git://github.com/petergebala/sms_api.git'
+    ```
 
 And then execute:
 
@@ -19,19 +21,23 @@ Or install it yourself as:
 
 Add configuration file to initializers:
 
+    ```ruby
     SmsApi.setup do |config|
       config.username   = "login to smsapi.pl page"
       config.password   = "password to smsapi.pl page"
       config.test_mode  = Rails.env.production? ? false : true
     end
+    ```
 
 ## Usage
 
+    ```ruby
     sms = SmsApi::Connection.new(:to => "555-555-555", :message => "Lorem Ipsum", :from => "Alert")
     sms.deliver! # Then raise an error if failure
     # or
     sms.deliver # Return false on failure
-
+    ```
+    
 ## Possible options
     #=================================================================================================
     # Parametr      | Opis
