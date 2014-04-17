@@ -1,3 +1,4 @@
+[![Code Climate](https://codeclimate.com/github/petergebala/sms_api.png)](https://codeclimate.com/github/petergebala/sms_api)
 # SmsApi
 
 Simple gem responsible for connecting to smsapi.pl and sending simple smses.
