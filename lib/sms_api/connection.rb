@@ -6,7 +6,7 @@ module SmsApi
     # Available options to pass in constructor
     # This options you can use to send in params
     AVAILABLE_OPTIONS = [:password, :username, :from, :to, :group, :message, :from, :encoding, :flash, :test, 
-                         :details, :date, :datacodin, :idx, :check_idx, :single, :eco, :nounicode, :fast]
+                         :details, :date, :datacodin, :idx, :check_idx, :single, :eco, :nounicode, :fast,:partner_id]
  
     # Required field for sending sms
     REQUIRED_FIELDS = [:from, :password, :username, :to, :message] 
