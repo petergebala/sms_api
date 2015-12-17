@@ -190,7 +190,7 @@ module SmsApi
     def validate_phone_numbers!
       phone_numbers = to
       phone_numbers = [phone_numbers] if phone_numbers.class == String
-      self.to = phone_numbers.map { |num| validate_phone_number(num) }.join('')
+      self.to = phone_numbers.map { |num| validate_phone_number(num) }.join(',')
       true
     end
 
