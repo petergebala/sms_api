@@ -18,7 +18,7 @@ module SmsApi
     #=================================================================================================
     # username      | Nazwa użytkownika lub główny adres e-mail przypisany do konta w serwisie SMSAPI
     #-------------------------------------------------------------------------------------------------
-    # password      | Hasło do Twojego konta w serwisie SMSAPI zaszyfrowane w MD5
+    # password      | Hasło do Twojego konta w serwisie SMSAPI
     #-------------------------------------------------------------------------------------------------
     # to            | Numer odbiorcy wiadomości w formacie 48xxxxxxxxx lub xxxxxxxxx. Np. 48505602702
     #               | lub 505602702.
