@@ -13,7 +13,7 @@ module SmsApi
 
   # Address of smsapi.pl
   mattr_accessor :api_url
-  @@api_url = "http://api.smsapi.pl/sms.do"
+  @@api_url = "https://ssl.smsapi.pl/sms.do"
 
 
   # Needed for configuration file
