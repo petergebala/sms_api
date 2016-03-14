@@ -9,7 +9,7 @@ module SmsApi
                          :details, :date, :datacodin, :idx, :check_idx, :single, :eco, :nounicode, :fast]
 
     # Required field for sending sms
-    REQUIRED_FIELDS = [:from, :password, :username, :to, :message]
+    REQUIRED_FIELDS = [:password, :username, :to, :message]
 
     attr_accessor *AVAILABLE_OPTIONS, :passed_options
 
