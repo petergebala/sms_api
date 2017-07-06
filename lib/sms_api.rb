@@ -20,4 +20,9 @@ module SmsApi
   def self.setup
     yield self
   end
+
+  def self.is_polish_phone_number?(number)
+    phone_number = number.gsub(/\s|\-|\+|\.|\(|\)/, '')
+    phone_number.length == 9 || (phone_number.length == 11 && phone_number.match(/^48/))
+  end
 end
